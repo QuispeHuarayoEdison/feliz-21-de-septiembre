@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feliz Día de las Flores Amarillas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FFD700;
+            --primary-light: #FFF066;
+            --dark: #050505;
+            --glass: rgba(15, 20, 10, 0.25);
+            --glass-border: rgba(255, 215, 0, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark);
+            background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4)), url('fondo_jardin.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Canvas Background */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none; /* Let clicks pass through to main content */
+        }
+
+        /* Splash Screen */
+        #splash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1.5s ease-in-out, visibility 1.5s ease-in-out;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #splash.show-splash {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        #intro {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 110;
+            transition: opacity 1s ease;
+            background-color: transparent;
+        }
+
+        .btn-magic {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            color: #FFD700;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            transition: all 0.3s;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+        .btn-magic:hover {
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .garden-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .splash-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            padding: 3rem;
+        }
+
+        .splash-title {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 1px;
+        }
+
+        .splash-title span {
+            opacity: 0;
+            display: inline-block;
+            transition: opacity 0.1s, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0.5);
+        }
+
+        .splash-title span.revealed {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .flower-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+        }
+
+        .flower-icon, .btn-surprise {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+        .flower-icon.revealed, .btn-surprise.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .btn-surprise {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.85), rgba(255, 165, 0, 0.85));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #111;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 1.2rem 2.5rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-surprise:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.8), inset 0 2px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-surprise:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Main Content */
+        #main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            perspective: 1000px;
+            overflow: hidden;
+            transition: opacity 1.5s ease 0.5s;
+        }
+        
+        #main.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Glassmorphism Card (Message Sequence) */
+        .message-card {
+            position: absolute;
+            background: transparent;
+            border: none;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            max-width: 550px;
+            width: 90%;
+            
+            /* 3D Initial state (far away) */
+            opacity: 0;
+            transform: translateZ(-800px) translateY(50px);
+            transition: opacity 2s ease-out, transform 3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .message-card.active {
+            opacity: 1;
+            transform: translateZ(0) translateY(0);
+            pointer-events: all;
+        }
+
+        .message-card.passed {
+            opacity: 0;
+            transform: translateZ(600px) translateY(-50px);
+            transition: opacity 1.5s ease-in, transform 2s cubic-bezier(0.5, 0, 0.8, 0.2);
+            pointer-events: none;
+        }
+
+        .message-card h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+            line-height: 1.3;
+        }
+
+        .message-card p {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600; /* Negrita */
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: #eee;
+            margin-bottom: 1.5rem;
+        }
+
+        .heart {
+            color: var(--primary);
+            font-size: 1.5rem;
+            display: inline-block;
+            animation: beat 1s infinite;
+        }
+
+        /* Audio Player */
+        .player {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease;
+        }
+
+        .player.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .play-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .music-notes {
+            display: flex;
+            gap: 4px;
+            height: 20px;
+            align-items: center;
+        }
+
+        .bar {
+            width: 4px;
+            background-color: var(--primary);
+            border-radius: 2px;
+            animation: bounce 1s infinite ease-in-out alternate;
+        }
+
+        .bar:nth-child(1) { height: 10px; animation-delay: 0.1s; }
+        .bar:nth-child(2) { height: 20px; animation-delay: 0.3s; }
+        .bar:nth-child(3) { height: 15px; animation-delay: 0.2s; }
+        
+        .paused .bar {
+            animation-play-state: paused;
+            height: 5px !important;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(255,215,0,0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)); }
+        }
+
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes bounce {
+            from { height: 5px; }
+            to { height: 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .splash-title {
+                font-size: 1.6rem;
+            }
+            .message-card h1 {
+                font-size: 1.8rem;
+            }
+            .message-card p {
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="morat.mp3" type="audio/mpeg">
+    </audio>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <div id="intro">
+        <button class="btn-magic" id="magicBtn">Iniciar Magia ✨</button>
+    </div>
+
+    <div id="splash">
+        <div class="garden-container">
+            <div class="splash-content">
+                <h2 class="splash-title" id="splashTitle">Feliz 21 de Septiembre</h2>
+                <div class="flower-icon" id="flowerIcon">🌻</div>
+                <button class="btn-surprise" id="startBtn">Abrir Sorpresa 💛</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main">
+        <div class="message-card">
+            <h1>Feliz Día de las Flores Amarillas y de la Primavera</h1>
+            <p>Hoy comienza la estación más hermosa del año, el tiempo donde el mundo renace, las flores despiertan y todo se llena de colores vivos.</p>
+        </div>
+        
+        <div class="message-card">
+            <h1>Día de la Juventud</h1>
+            <p>En este 21 de septiembre también celebramos la juventud, esa chispa inagotable de sueños, energía y pasión que llevas dentro y que ilumina a todos los que te rodean.</p>
+        </div>
+        
+        <div class="message-card">
+            <h1>Un Día Mágico</h1>
+            <p>Las flores amarillas representan la luz, la esperanza y la alegría de vivir. Que su brillo te acompañe y te recuerde lo especial y valioso(a) que eres en este mundo.</p>
+        </div>
+        
+        <div class="message-card">
+            <h1>Mis mejores deseos</h1>
+            <p>Que esta primavera te traiga muchísima luz, que tu juventud interior nunca se apague y que tu vida siempre esté rodeada de momentos tan hermosos y mágicos como este.</p>
+            <div class="heart">💛</div>
+        </div>
+    </div>
+
+    <div class="player" id="player">
+        <button class="play-btn" id="togglePlay">⏸️</button>
+        <div class="music-notes" id="visualizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const intro = document.getElementById('intro');
+        const magicBtn = document.getElementById('magicBtn');
+        const splash = document.getElementById('splash');
+        const main = document.getElementById('main');
+        const startBtn = document.getElementById('startBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        const player = document.getElementById('player');
+        const togglePlayBtn = document.getElementById('togglePlay');
+        const visualizer = document.getElementById('visualizer');
+        const splashTitle = document.getElementById('splashTitle');
+        const flowerIcon = document.getElementById('flowerIcon');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Wrap title letters in spans
+        const originalText = splashTitle.textContent;
+        splashTitle.innerHTML = '';
+        const titleSpans = [];
+        for (let char of originalText) {
+            if (char === ' ') {
+                const space = document.createElement('span');
+                space.innerHTML = '&nbsp;';
+                splashTitle.appendChild(space);
+                continue;
+            }
+            const span = document.createElement('span');
+            span.innerText = char;
+            splashTitle.appendChild(span);
+            titleSpans.push(span);
+        }
+
+        let appState = 'WAITING'; // WAITING, INTRO_ANIMATION, WRITE_TITLE, SPLASH, MAIN
+
+        magicBtn.addEventListener('click', () => {
+            intro.style.opacity = '0';
+            setTimeout(() => { intro.style.visibility = 'hidden'; }, 1000);
+            bgMusic.play().catch(e => console.log("Audio prevent"));
+            appState = 'INTRO_ANIMATION';
+            initIntroAnimation();
+        });
+
+        let currentCardIndex = 0;
+        let messageSequenceTimeout = null;
+        const allCards = document.querySelectorAll('.message-card');
+
+        function showCard(index) {
+            if (index < 0 || index >= allCards.length) return;
+            
+            if (messageSequenceTimeout) clearTimeout(messageSequenceTimeout);
+            
+            allCards.forEach((card, i) => {
+                if (i < index) {
+                    card.classList.remove('active');
+                    card.classList.add('passed');
+                } else if (i === index) {
+                    card.classList.add('active');
+                    card.classList.remove('passed');
+                } else {
+                    card.classList.remove('active');
+                    card.classList.remove('passed');
+                }
+            });
+            
+            currentCardIndex = index;
+            let currentCard = allCards[index];
+
+            // Spawn a butterfly to sit on a specific letter of the title
+            let currentH1 = currentCard.querySelector('h1');
+            if (currentH1) {
+                if (!currentH1.dataset.wrapped) {
+                    currentH1.dataset.wrapped = 'true';
+                    let text = currentH1.innerText;
+                    let idx = Math.floor(Math.random() * (text.length - 1));
+                    while (text[idx] === ' ' && idx < text.length - 1) idx++;
+                    
+                    let newHTML = text.substring(0, idx) + '<span class="perch-spot">' + text[idx] + '</span>' + text.substring(idx + 1);
+                    currentH1.innerHTML = newHTML;
+                }
+
+                setTimeout(() => {
+                    let targetSpan = currentH1.querySelector('.perch-spot');
+                    if (targetSpan) {
+                        perchedButterflies.push(new PerchedButterfly(targetSpan));
+                    }
+                }, 1000);
+            }
+
+            // Spawn a butterfly to sit on a specific letter of the paragraph
+            let currentP = currentCard.querySelector('p');
+            if (currentP) {
+                if (!currentP.dataset.wrapped) {
+                    currentP.dataset.wrapped = 'true';
+                    let text = currentP.innerText;
+                    let idx = Math.floor(Math.random() * (text.length - 1));
+                    while (text[idx] === ' ' && idx < text.length - 1) idx++;
+                    
+                    let newHTML = text.substring(0, idx) + '<span class="perch-spot-p">' + text[idx] + '</span>' + text.substring(idx + 1);
+                    currentP.innerHTML = newHTML;
+                }
+
+                setTimeout(() => {
+                    let targetSpan = currentP.querySelector('.perch-spot-p');
+                    if (targetSpan) {
+                        perchedButterflies.push(new PerchedButterfly(targetSpan));
+                    }
+                }, 1500); 
+            }
+            
+            // Auto-advance
+            if (index < allCards.length - 1) {
+                const textLength = currentCard.innerText.length;
+                const readTime = Math.max(7000, textLength * 80); 
+                messageSequenceTimeout = setTimeout(() => {
+                    showCard(index + 1);
+                }, readTime);
+            }
+        }
+
+        function startMessageSequence() {
+            setTimeout(() => { showCard(0); }, 500); // Start after 0.5s of MAIN
+        }
+
+        // Swipe Navigation Logic
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', e => {
+            if (appState !== 'MAIN') return;
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        document.addEventListener('touchend', e => {
+            if (appState !== 'MAIN') return;
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50; 
+            
+            if (touchEndX < touchStartX - swipeThreshold) {
+                // Swiped left - next message
+                if (currentCardIndex < allCards.length - 1) {
+                    showCard(currentCardIndex + 1);
+                }
+            }
+            
+            if (touchEndX > touchStartX + swipeThreshold) {
+                // Swiped right - previous message
+                if (currentCardIndex > 0) {
+                    showCard(currentCardIndex - 1);
+                }
+            }
+        }
+
+        // Start App
+        let giantButterfly = null;
+        startBtn.addEventListener('click', () => {
+            if (appState !== 'SPLASH') return; // Prevent double clicking or clicking before ready
+            
+            // Hide splash
+            splash.classList.remove('show-splash');
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.visibility = 'hidden';
+            }, 1000);
+
+            // Bring canvas to front so dust is fully visible
+            canvas.style.zIndex = '105';
+
+            let btnRect = startBtn.getBoundingClientRect();
+            let explX = btnRect.left + btnRect.width / 2;
+            let explY = btnRect.top + btnRect.height / 2;
+
+            appState = 'MAGIC_DUST_TRANSITION';
+            magicDustTransition = new MagicDustTransition(explX, explY);
+
+            setTimeout(() => {
+                // Show main content
+                appState = 'MAIN';
+                main.classList.add('active');
+                
+                // Show player
+                player.classList.add('visible');
+                
+                // Reset canvas z-index
+                canvas.style.zIndex = '1';
+                
+                startMessageSequence();
+            }, 3000); // 3 seconds transition for butterfly
+
+            // Play music if not already playing
+            bgMusic.play().catch(e => console.log("Audio autoplay prevented"));
+        });
+
+        // Audio Controls
+        togglePlayBtn.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                togglePlayBtn.innerHTML = '⏸️';
+                visualizer.classList.remove('paused');
+            } else {
+                bgMusic.pause();
+                togglePlayBtn.innerHTML = '▶️';
+                visualizer.classList.add('paused');
+            }
+        });
+
+        // Canvas Particles (Anti-gravity & Touch responsive)
+        let particles = [];
+        let burstParticles = [];
+        let butterflies = [];
+        let mouse = { x: null, y: null, radius: 100 };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Track touch / mouse
+        function updateInteraction(e) {
+            let clientX, clientY;
+            if (e.type.includes('touch')) {
+                clientX = e.touches[0]?.clientX;
+                clientY = e.touches[0]?.clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            if (clientX !== undefined && clientY !== undefined) {
+                mouse.x = clientX;
+                mouse.y = clientY;
+            }
+        }
+        
+        window.addEventListener('mousemove', updateInteraction);
+        window.addEventListener('touchmove', updateInteraction, {passive: true});
+        
+        window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+        window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
+
+        function createBurst(x, y) {
+            for (let i = 0; i < 20; i++) {
+                burstParticles.push(new Particle(x, y, true));
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.glass-card') || e.target.closest('.player') || e.target.closest('#splash')) return;
+            createBurst(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.glass-card') || e.target.closest('.player') || e.target.closest('#splash')) return;
+            let touch = e.touches[0];
+            createBurst(touch.clientX, touch.clientY);
+        }, {passive: true});
+
+        class Particle {
+            constructor(x, y, isBurst = false) {
+                this.isBurst = isBurst;
+                this.x = x !== undefined ? x : Math.random() * canvas.width;
+                this.y = y !== undefined ? y : canvas.height + Math.random() * 200;
+                this.type = 'petal';
+                this.size = isBurst ? Math.random() * 4 + 2 : Math.random() * 8 + 4;
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1;
+                
+                // Upward velocity
+                this.vy = isBurst ? (Math.random() - 0.5) * 8 - 2 : -(Math.random() * 1.5 + 0.5);
+                this.vx = isBurst ? (Math.random() - 0.5) * 8 : (Math.random() - 0.5) * 1;
+                
+                // Colors
+                const petalColors = ['#FFD700', '#FFC107', '#FFA000', '#FFF066'];
+                this.color = petalColors[Math.floor(Math.random() * petalColors.length)];
+                this.angle = Math.random() * Math.PI * 2;
+                this.spin = (Math.random() - 0.5) * 0.1;
+                
+                // Wave motion
+                this.waveOffset = Math.random() * Math.PI * 2;
+                this.waveSpeed = Math.random() * 0.02 + 0.01;
+                
+                this.life = isBurst ? 100 : Infinity;
+                this.opacity = 1;
+            }
+
+            draw() {
+                if (this.opacity <= 0) return;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.globalAlpha = this.opacity;
+                
+                // Draw elegant petal
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size);
+                ctx.bezierCurveTo(this.size, -this.size * 0.5, this.size, this.size * 0.5, 0, this.size);
+                ctx.bezierCurveTo(-this.size, this.size * 0.5, -this.size, -this.size * 0.5, 0, -this.size);
+                
+                const grad = ctx.createLinearGradient(0, -this.size, 0, this.size);
+                grad.addColorStop(0, this.color);
+                grad.addColorStop(1, '#FFA500');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                
+                ctx.restore();
+            }
+
+            update() {
+                if (this.isBurst) {
+                    this.life -= 2;
+                    this.opacity = this.life / 100;
+                    this.vy += 0.15; // gravity for burst
+                } else {
+                    // Wave motion on X for normal particles
+                    this.x += Math.sin(this.y * this.waveSpeed + this.waveOffset) * 1;
+                }
+
+                // Base movement
+                this.y += this.vy;
+                this.x += this.vx;
+                this.angle += this.spin;
+
+                // Mouse/Touch Interaction (Repel)
+                if (mouse.x != null && mouse.y != null && !this.isBurst) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        let forceDirectionX = dx / distance;
+                        let forceDirectionY = dy / distance;
+                        let force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= forceDirectionX * force * this.density;
+                        this.y -= forceDirectionY * force * this.density;
+                    }
+                }
+
+                // Reset particle when it goes off screen top
+                if (!this.isBurst && (this.y < -50 || this.x < -50 || this.x > canvas.width + 50)) {
+                    this.y = canvas.height + 50;
+                    this.x = Math.random() * canvas.width;
+                    this.vy = -(Math.random() * 1.5 + 0.5);
+                }
+            }
+        }
+
+        class FairyDust {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 2.5 + 0.5;
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5 + 0.5;
+                this.life = 100;
+                this.color = color === '#4169E1' ? '#ADD8E6' : '#FFD700'; // Match butterfly color magic
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 2;
+            }
+            draw() {
+                if (this.life <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = this.life / 100;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = this.color;
+                ctx.restore();
+            }
+        }
+
+        class Butterfly {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 8 + 6;
+                let colors = ['#FFD700', '#FF69B4', '#87CEFA', '#9370DB', '#FF4500', '#FF8C00', '#4169E1'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.angle = Math.atan2(this.vy, this.vx);
+                this.flapSpeed = Math.random() * 0.2 + 0.1;
+                this.flap = 0;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle + Math.PI / 2); // Orient forward
+                
+                // Flapping effect
+                const flapScale = Math.abs(Math.sin(this.flap));
+                
+                // Draw wings
+                ctx.scale(flapScale, 1);
+                
+                // Left wing
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-this.size * 1.5, -this.size, -this.size * 2, this.size, 0, this.size * 1.2);
+                ctx.fill();
+                
+                // Right wing
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(this.size * 1.5, -this.size, this.size * 2, this.size, 0, this.size * 1.2);
+                ctx.fill();
+                
+                // Body
+                ctx.scale(1 / flapScale, 1);
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 1.5, this.size * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+            
+            update() {
+                this.flap += this.flapSpeed;
+                
+                // Erratic movement
+                this.angle += (Math.random() - 0.5) * 0.3;
+                const speed = 2.5;
+                this.vx = Math.cos(this.angle) * speed;
+                this.vy = Math.sin(this.angle) * speed;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Fairy Dust trail
+                if (Math.random() > 0.4) {
+                    burstParticles.push(new FairyDust(this.x, this.y, this.color));
+                }
+
+                // Wrap around edges
+                if (this.x < -50) this.x = canvas.width + 50;
+                if (this.x > canvas.width + 50) this.x = -50;
+                if (this.y < -50) this.y = canvas.height + 50;
+                if (this.y > canvas.height + 50) this.y = -50;
+            }
+        }
+
+        class GrowingFlower {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height; // START AT THE GROUND
+                this.scale = 0;
+                this.maxSize = 80;
+                this.stemHeight = Math.min(350, canvas.height * 0.5); // How tall it grows
+                this.growing = true;
+                this.opacity = 1;
+            }
+            draw() {
+                if (this.opacity <= 0) return;
+                ctx.save();
+                ctx.translate(this.x, this.y); // Translate to GROUND
+                ctx.scale(this.scale, this.scale); // Scale from the GROUND
+                ctx.globalAlpha = this.opacity;
+                
+                // Draw stem (curved organic growing upwards)
+                ctx.fillStyle = '#2E7D32';
+                ctx.beginPath();
+                ctx.moveTo(-6, 0); // Ground left
+                ctx.quadraticCurveTo(-25, -this.stemHeight/2, -6, -this.stemHeight); // to head
+                ctx.lineTo(6, -this.stemHeight); // head right
+                ctx.quadraticCurveTo(-13, -this.stemHeight/2, 6, 0); // back to ground right
+                ctx.fill();
+
+                // Draw Leaves
+                // Left Leaf
+                ctx.beginPath();
+                ctx.moveTo(-12, -this.stemHeight * 0.3);
+                ctx.quadraticCurveTo(-100, -this.stemHeight * 0.2, -130, -this.stemHeight * 0.4);
+                ctx.quadraticCurveTo(-70, -this.stemHeight * 0.6, -18, -this.stemHeight * 0.35);
+                ctx.fillStyle = '#1B5E20';
+                ctx.fill();
+                // Left leaf vein
+                ctx.beginPath();
+                ctx.moveTo(-12, -this.stemHeight * 0.3);
+                ctx.quadraticCurveTo(-70, -this.stemHeight * 0.25, -125, -this.stemHeight * 0.38);
+                ctx.strokeStyle = '#2E7D32';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Right Leaf
+                ctx.beginPath();
+                ctx.moveTo(-8, -this.stemHeight * 0.6);
+                ctx.quadraticCurveTo(90, -this.stemHeight * 0.5, 120, -this.stemHeight * 0.7);
+                ctx.quadraticCurveTo(60, -this.stemHeight * 0.9, -5, -this.stemHeight * 0.65);
+                ctx.fillStyle = '#1B5E20';
+                ctx.fill();
+                // Right leaf vein
+                ctx.beginPath();
+                ctx.moveTo(-8, -this.stemHeight * 0.6);
+                ctx.quadraticCurveTo(60, -this.stemHeight * 0.55, 115, -this.stemHeight * 0.68);
+                ctx.strokeStyle = '#2E7D32';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // NOW TRANSLATE TO FLOWER HEAD for petals and center
+                ctx.translate(0, -this.stemHeight);
+
+                // Draw petals (Back Layer)
+                const numPetalsBack = 16;
+                for (let i = 0; i < numPetalsBack; i++) {
+                    ctx.save();
+                    ctx.rotate((Math.PI * 2 / numPetalsBack) * i + 0.2); // Offset rotation
+                    ctx.beginPath();
+                    ctx.ellipse(0, -this.maxSize * 0.85, this.maxSize * 0.2, this.maxSize * 0.95, 0, 0, Math.PI * 2);
+                    const grad = ctx.createLinearGradient(0, -this.maxSize * 1.5, 0, 0);
+                    grad.addColorStop(0, '#FF8C00');
+                    grad.addColorStop(1, '#FF6F00');
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Draw petals (Front Layer)
+                const numPetals = 16;
+                for (let i = 0; i < numPetals; i++) {
+                    ctx.save();
+                    ctx.rotate((Math.PI * 2 / numPetals) * i);
+                    ctx.beginPath();
+                    ctx.ellipse(0, -this.maxSize * 0.75, this.maxSize * 0.22, this.maxSize * 0.85, 0, 0, Math.PI * 2);
+                    const grad = ctx.createLinearGradient(0, -this.maxSize * 1.3, 0, 0);
+                    grad.addColorStop(0, '#FFD700');
+                    grad.addColorStop(1, '#FF8C00');
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                    // Petal vein for realism
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.maxSize * 0.2);
+                    ctx.lineTo(0, -this.maxSize * 1.4);
+                    ctx.strokeStyle = 'rgba(255, 140, 0, 0.4)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Draw center (Sunflower Disk)
+                ctx.beginPath();
+                ctx.arc(0, 0, this.maxSize * 0.55, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.maxSize * 0.55);
+                gradient.addColorStop(0, '#4E342E');
+                gradient.addColorStop(0.7, '#3E2723');
+                gradient.addColorStop(1, '#1e110d');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Realistic seeds pattern (Fibonacci spiral)
+                ctx.fillStyle = '#2a1a17';
+                const goldenAngle = 137.5 * (Math.PI / 180);
+                for (let i = 1; i < 250; i++) {
+                    let radius = Math.sqrt(i) * (this.maxSize * 0.032);
+                    if (radius > this.maxSize * 0.52) break;
+                    let angle = i * goldenAngle;
+                    let seedX = Math.cos(angle) * radius;
+                    let seedY = Math.sin(angle) * radius;
+                    
+                    ctx.beginPath();
+                    ctx.arc(seedX, seedY, 1.2, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
+            }
+            update() {
+                if (this.growing && this.scale < 1) {
+                    this.scale += 0.003; // Takes ~5.5s at 60fps
+                }
+            }
+        }
+
+        class MagicButterfly extends Butterfly {
+            constructor(flower, startAngle = 0, direction = 1) {
+                super();
+                this.flower = flower;
+                this.orbitAngle = startAngle;
+                this.direction = direction;
+                this.orbitRadius = 200;
+                this.orbiting = true;
+                let colors = ['#FFD700', '#FF69B4', '#87CEFA', '#9370DB', '#FF4500'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.size = 12;
+                this.flapSpeed = 0.3;
+                this.y = -50;
+            }
+            update() {
+                this.flap += this.flapSpeed;
+                
+                if (this.orbiting) {
+                    this.orbitAngle += 0.04 * this.direction;
+                    this.orbitRadius = 180 - (this.flower.scale * 80);
+                    
+                    let headY = this.flower.y - (this.flower.stemHeight * this.flower.scale);
+                    let targetX = this.flower.x + Math.cos(this.orbitAngle) * this.orbitRadius;
+                    let targetY = headY + Math.sin(this.orbitAngle) * this.orbitRadius * 0.5;
+                    
+                    this.vx = (targetX - this.x) * 0.1;
+                    this.vy = (targetY - this.y) * 0.1;
+                    
+                    this.angle = Math.atan2(this.vy, this.vx);
+                    
+                    for (let i=0; i<3; i++) {
+                        burstParticles.push(new FairyDust(this.x, this.y, '#FFD700'));
+                    }
+                    
+                    if (this.flower.scale >= 1) {
+                        this.orbiting = false;
+                    }
+                } else {
+                    this.angle += (Math.random() - 0.5) * 0.3;
+                    const speed = 4;
+                    this.vx = Math.cos(this.angle) * speed;
+                    this.vy = Math.sin(this.angle) * speed;
+                    if (Math.random() > 0.3) {
+                        burstParticles.push(new FairyDust(this.x, this.y, '#FFD700'));
+                    }
+                }
+                
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+        }
+
+        class WriterButterfly extends Butterfly {
+            constructor(targetX, targetY, targetSpan, onReached) {
+                super();
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.targetSpan = targetSpan;
+                this.onReached = onReached;
+                this.reached = false;
+                
+                // Spawn randomly from one of the 4 offscreen edges (far away)
+                let edge = Math.floor(Math.random() * 4);
+                if (edge === 0) { this.x = -150; this.y = Math.random() * canvas.height; }
+                else if (edge === 1) { this.x = canvas.width + 150; this.y = Math.random() * canvas.height; }
+                else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = -150; }
+                else { this.x = Math.random() * canvas.width; this.y = canvas.height + 150; }
+                
+                let colors = ['#FFD700', '#FF69B4', '#87CEFA', '#9370DB', '#FF4500'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.size = 8;
+                this.speed = 6.5; // Slower speed
+            }
+            update() {
+                this.flap += this.flapSpeed;
+                
+                if (!this.reached) {
+                    let dx = this.targetX - this.x;
+                    let dy = this.targetY - this.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    this.angle = Math.atan2(dy, dx);
+                    
+                    if (dist < 15) {
+                        this.reached = true;
+                        this.targetSpan.classList.add('revealed');
+                        
+                        for (let i=0; i<15; i++) {
+                            burstParticles.push(new FairyDust(this.x, this.y, '#FFD700'));
+                        }
+                        
+                        if (this.onReached) this.onReached();
+                    } else {
+                        this.x += Math.cos(this.angle) * this.speed;
+                        this.y += Math.sin(this.angle) * this.speed;
+                        if (Math.random() > 0.5) burstParticles.push(new FairyDust(this.x, this.y, '#FFD700'));
+                    }
+                } else {
+                    this.angle = -Math.PI / 2 + (Math.random() - 0.5);
+                    this.x += Math.cos(this.angle) * 6;
+                    this.y += Math.sin(this.angle) * 6;
+                }
+            }
+        }
+
+        class MagicDustTransition {
+            constructor(x, y) {
+                this.timer = 0;
+                // Massive initial burst exploding from the button!
+                for(let i=0; i<400; i++) {
+                    let colors = ['#FFD700', '#FFF', '#FFA500', '#FFFFE0'];
+                    let particle = new FairyDust(x, y, colors[Math.floor(Math.random() * colors.length)]);
+                    particle.size = Math.random() * 5 + 3; // bigger
+                    particle.decay = Math.random() * 0.008 + 0.002; // lives much longer
+                    
+                    // Explode outwards radially
+                    let angle = Math.random() * Math.PI * 2;
+                    let speed = Math.random() * 18 + 5; // very fast explosion
+                    particle.vx = Math.cos(angle) * speed;
+                    particle.vy = Math.sin(angle) * speed;
+                    
+                    burstParticles.push(particle);
+                }
+            }
+            update() {
+                // Se removió la onda de polvo de izquierda a derecha.
+                // Solo se mantiene la explosión inicial.
+            }
+            draw() {} // It only spawns dust, drawing is handled by burstParticles loop
+        }
+
+        class PerchedButterfly extends Butterfly {
+            constructor(targetElement) {
+                super();
+                this.targetElement = targetElement;
+                this.reached = false;
+                
+                // Spawn randomly from one of the 4 offscreen edges (far away)
+                let edge = Math.floor(Math.random() * 4);
+                if (edge === 0) { this.x = -150; this.y = Math.random() * canvas.height; }
+                else if (edge === 1) { this.x = canvas.width + 150; this.y = Math.random() * canvas.height; }
+                else if (edge === 2) { this.x = Math.random() * canvas.width; this.y = -150; }
+                else { this.x = Math.random() * canvas.width; this.y = canvas.height + 150; }
+                
+                this.size = 10; // slightly smaller
+                this.speed = 6;
+                // Random beautiful colors for the butterflies
+                let colors = ['#FFD700', '#FF69B4', '#87CEFA', '#9370DB', '#FF4500'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            update() {
+                let rect = this.targetElement.getBoundingClientRect();
+                // Sit exactly on the top middle of the letter
+                let tx = rect.left + rect.width / 2;
+                let ty = rect.top - 5;
+                
+                if (!this.reached) {
+                    this.flap += this.flapSpeed;
+                    let dx = tx - this.x;
+                    let dy = ty - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    this.angle = Math.atan2(dy, dx);
+                    if (dist < 15) {
+                        this.reached = true;
+                    } else {
+                        this.x += Math.cos(this.angle) * this.speed;
+                        this.y += Math.sin(this.angle) * this.speed;
+                        if (Math.random() > 0.8) burstParticles.push(new FairyDust(this.x, this.y, '#FFD700'));
+                    }
+                } else {
+                    this.x = tx;
+                    this.y = ty;
+                    this.angle = -Math.PI/6;
+                    this.flap += this.flapSpeed * 0.1;
+                    
+                    let style = window.getComputedStyle(this.targetElement.closest('.message-card'));
+                    if (parseFloat(style.opacity) < 0.1) {
+                        this.reached = false;
+                        this.targetElement = { getBoundingClientRect: () => ({ right: this.x + 500, top: -100 }) };
+                    }
+                }
+            }
+        }
+
+        class MusicNote {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.life = 1;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = -Math.random() * 1.5 - 0.5; // Float upwards
+                const notes = ['♪', '♫', '♬', '♩'];
+                this.symbol = notes[Math.floor(Math.random() * notes.length)];
+                this.color = '#FFD700'; // Golden notes
+                this.size = Math.random() * 10 + 15;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.008; // Fade out slowly
+                this.x += Math.sin(this.y * 0.05) * 0.5; // wavy side-to-side motion
+            }
+            draw() {
+                if (this.life <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.font = this.size + 'px Arial';
+                ctx.fillText(this.symbol, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        let magicFlower = null;
+        let magicButterfly1 = null;
+        let magicButterfly2 = null;
+        let writerButterflies = [];
+        let perchedButterflies = [];
+        let musicNotes = [];
+        let writtenLettersCount = 0;
+        let magicDustTransition = null;
+
+        function startWritingTitle() {
+            appState = 'WRITE_TITLE';
+            splash.classList.add('show-splash');
+            
+            // Bring canvas forward slightly so butterflies draw OVER the blurred background but behind the text/button
+            canvas.style.zIndex = '105';
+            
+            setTimeout(() => {
+                for (let i = 0; i < titleSpans.length; i++) {
+                    setTimeout(() => {
+                        let span = titleSpans[i];
+                        let rect = span.getBoundingClientRect();
+                        let tx = rect.left + rect.width / 2;
+                        let ty = rect.top + rect.height / 2;
+                        writerButterflies.push(new WriterButterfly(tx, ty, span, () => {
+                            writtenLettersCount++;
+                            if (writtenLettersCount === titleSpans.length) {
+                                // Once all letters are written, draw the flower icon
+                                setTimeout(() => {
+                                    let icon = document.getElementById('flowerIcon');
+                                    let iconRect = icon.getBoundingClientRect();
+                                    writerButterflies.push(new WriterButterfly(iconRect.left + iconRect.width/2, iconRect.top + iconRect.height/2, icon, () => {
+                                        // Then draw the start button
+                                        setTimeout(() => {
+                                            let btnRect = startBtn.getBoundingClientRect();
+                                            writerButterflies.push(new WriterButterfly(btnRect.left + btnRect.width/2, btnRect.top + btnRect.height/2, startBtn, () => {
+                                                // Reset canvas z-index after everything
+                                                setTimeout(() => {
+                                                    canvas.style.zIndex = '1';
+                                                    appState = 'SPLASH';
+                                                    writerButterflies = [];
+                                                }, 1500);
+                                            }));
+                                        }, 400); // Pause before button
+                                    }));
+                                }, 500); // Pause before flower icon
+                            }
+                        }));
+                    }, i * 350); // Increased delay for slower writing
+                }
+            }, 1000); // wait for splash fade in
+        }
+
+        function initIntroAnimation() {
+            magicFlower = new GrowingFlower();
+            magicButterfly1 = new MagicButterfly(magicFlower, 0, 1);
+            magicButterfly2 = new MagicButterfly(magicFlower, Math.PI, -1);
+            
+            setTimeout(() => {
+                magicFlower.growing = false;
+                let fadeInt = setInterval(() => {
+                    magicFlower.opacity -= 0.02;
+                    if (magicFlower.opacity <= 0) {
+                        clearInterval(fadeInt);
+                        magicFlower = null;
+                        magicButterfly1 = null;
+                        magicButterfly2 = null;
+                    }
+                }, 30);
+                
+                startWritingTitle();
+            }, 7000);
+        }
+
+        function initParticles() {
+            particles = [];
+            let particleCount = Math.min(window.innerWidth / 10, 100);
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+            
+            butterflies = [];
+            for (let i = 0; i < 7; i++) {
+                butterflies.push(new Butterfly());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (appState === 'WAITING') {
+                // Just draw burst particles if any
+            } else if (appState === 'INTRO_ANIMATION') {
+                if (magicFlower) {
+                    magicFlower.update();
+                    magicFlower.draw();
+                }
+                if (magicButterfly1) {
+                    magicButterfly1.update();
+                    magicButterfly1.draw();
+                }
+                if (magicButterfly2) {
+                    magicButterfly2.update();
+                    magicButterfly2.draw();
+                }
+            } else if (appState === 'WRITE_TITLE') {
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                for (let i = 0; i < writerButterflies.length; i++) {
+                    writerButterflies[i].update();
+                    writerButterflies[i].draw();
+                }
+            } else if (appState === 'MAGIC_DUST_TRANSITION') {
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                if (magicDustTransition) {
+                    magicDustTransition.update();
+                    // dust draws itself in burstParticles array
+                }
+            } else {
+                // SPLASH or MAIN
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                for (let i = 0; i < butterflies.length; i++) {
+                    butterflies[i].update();
+                    butterflies[i].draw();
+                }
+                if (magicFlower) {
+                    magicFlower.update();
+                    magicFlower.draw();
+                }
+                if (magicButterfly1) {
+                    magicButterfly1.update();
+                    magicButterfly1.draw();
+                }
+                if (magicButterfly2) {
+                    magicButterfly2.update();
+                    magicButterfly2.draw();
+                }
+                for (let i = 0; i < writerButterflies.length; i++) {
+                    writerButterflies[i].update();
+                    writerButterflies[i].draw();
+                }
+                for (let i = 0; i < perchedButterflies.length; i++) {
+                    perchedButterflies[i].update();
+                    perchedButterflies[i].draw();
+                }
+            }
+            
+            for (let i = burstParticles.length - 1; i >= 0; i--) {
+                burstParticles[i].update();
+                burstParticles[i].draw();
+                if (burstParticles[i].life <= 0) {
+                    burstParticles.splice(i, 1);
+                }
+            }
+            
+            // Handle Music Notes
+            if (!bgMusic.paused && Math.random() > 0.96) {
+                let playerRect = player.getBoundingClientRect();
+                // Spawn from the center-top of the music button
+                musicNotes.push(new MusicNote(playerRect.left + playerRect.width/2 - 10, playerRect.top));
+            }
+            for (let i = musicNotes.length - 1; i >= 0; i--) {
+                musicNotes[i].update();
+                musicNotes[i].draw();
+                if (musicNotes[i].life <= 0) {
+                    musicNotes.splice(i, 1);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        initParticles();
+        animate();
+
+    </script>
+</body>
+</html>
