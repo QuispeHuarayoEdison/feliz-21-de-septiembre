@@ -429,17 +429,18 @@
         
         const words = originalText.split(' ');
         words.forEach((word, wordIndex) => {
-            const wordSpan = document.createElement('span');
-            wordSpan.style.whiteSpace = 'nowrap'; // Keeps the whole word together
+            const wordDiv = document.createElement('div');
+            wordDiv.style.display = 'inline-block';
+            wordDiv.style.whiteSpace = 'nowrap'; // Keeps the whole word together
             
             for (let char of word) {
                 const span = document.createElement('span');
                 span.innerText = char;
-                wordSpan.appendChild(span);
+                wordDiv.appendChild(span);
                 titleSpans.push(span);
             }
             
-            splashTitle.appendChild(wordSpan);
+            splashTitle.appendChild(wordDiv);
             
             if (wordIndex < words.length - 1) {
                 const space = document.createElement('span');
