@@ -681,7 +681,8 @@
             // Fly away perched butterfly if exists
             if (ramoBtnPerchedButterfly) {
                 ramoBtnPerchedButterfly.reached = false;
-                ramoBtnPerchedButterfly.targetElement = { getBoundingClientRect: () => ({ left: ramoBtnPerchedButterfly.x + 500, top: -100, width: 0 }) };
+                let escapeX = ramoBtnPerchedButterfly.x + 500;
+                ramoBtnPerchedButterfly.targetElement = { getBoundingClientRect: () => ({ left: escapeX, top: -100, width: 0 }) };
                 ramoBtnPerchedButterfly = null;
             }
 
