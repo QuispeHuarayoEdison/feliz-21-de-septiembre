@@ -339,6 +339,12 @@
             to { height: 20px; }
         }
 
+        @keyframes attentionSeeker {
+            0% { transform: translateX(-50%) scale(1); box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6); }
+            50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 15px 50px rgba(255, 215, 0, 1); }
+            100% { transform: translateX(-50%) scale(1); box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6); }
+        }
+
         #ramoText {
             font-size: 2rem;
         }
@@ -565,9 +571,15 @@
                 setTimeout(() => {
                     ramoBtn.style.opacity = '1';
                     ramoBtn.style.pointerEvents = 'all';
+                    ramoBtn.style.animation = 'attentionSeeker 2s infinite ease-in-out';
                     // Trigger a little dust around button
                     let rect = ramoBtn.getBoundingClientRect();
                     for(let i=0; i<15; i++) burstParticles.push(new FairyDust(rect.left + rect.width/2, rect.top + rect.height/2, '#FFD700'));
+
+                    // Spawn butterflies to circle the button
+                    for(let i=0; i<6; i++) {
+                        buttonButterflies.push(new ButtonButterfly(ramoBtn, i * (Math.PI * 2 / 6)));
+                    }
                 }, 6000);
             }
         }
@@ -1289,6 +1301,41 @@
             }
         }
 
+        class ButtonButterfly extends Butterfly {
+            constructor(btn, angleOffset) {
+                super();
+                this.btn = btn;
+                this.orbitAngle = angleOffset;
+                let rect = btn.getBoundingClientRect();
+                this.x = rect.left + rect.width/2 + Math.cos(angleOffset) * 100;
+                this.y = rect.top + rect.height/2 + Math.sin(angleOffset) * 100;
+                this.size = 7 + Math.random() * 4;
+                this.orbitRadius = 70 + Math.random() * 30;
+                this.flapSpeed = 0.4 + Math.random() * 0.2;
+            }
+            update() {
+                this.flap += this.flapSpeed;
+                if (parseFloat(this.btn.style.opacity) > 0) {
+                    this.orbitAngle += 0.035;
+                    let rect = this.btn.getBoundingClientRect();
+                    let tx = rect.left + rect.width/2 + Math.cos(this.orbitAngle) * this.orbitRadius;
+                    let ty = rect.top + rect.height/2 + Math.sin(this.orbitAngle) * (this.orbitRadius * 0.4);
+                    
+                    this.vx = (tx - this.x) * 0.1;
+                    this.vy = (ty - this.y) * 0.1;
+                    this.angle = Math.atan2(this.vy, this.vx);
+                    
+                    if (Math.random() > 0.85) burstParticles.push(new FairyDust(this.x, this.y, this.color));
+                } else {
+                    this.angle += (Math.random() - 0.5) * 0.3;
+                    this.vx = Math.cos(this.angle) * 5;
+                    this.vy = Math.sin(this.angle) * 5;
+                }
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+        }
+
         class MusicNote {
             constructor(x, y) {
                 this.x = x;
@@ -1323,6 +1370,7 @@
         let magicButterfly2 = null;
         let writerButterflies = [];
         let perchedButterflies = [];
+        let buttonButterflies = [];
         let musicNotes = [];
         let writtenLettersCount = 0;
         let magicDustTransition = null;
@@ -1473,6 +1521,10 @@
                 for (let i = 0; i < perchedButterflies.length; i++) {
                     perchedButterflies[i].update();
                     perchedButterflies[i].draw();
+                }
+                for (let i = 0; i < buttonButterflies.length; i++) {
+                    buttonButterflies[i].update();
+                    buttonButterflies[i].draw();
                 }
             }
             
