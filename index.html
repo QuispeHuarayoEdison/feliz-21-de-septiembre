@@ -345,6 +345,12 @@
             100% { transform: translateX(-50%) scale(1); box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6); }
         }
 
+        @keyframes attentionPulse {
+            0% { transform: scale(1); box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6); }
+            50% { transform: scale(1.1); box-shadow: 0 15px 50px rgba(255, 215, 0, 1); }
+            100% { transform: scale(1); box-shadow: 0 8px 32px rgba(255, 215, 0, 0.6); }
+        }
+
         #ramoText {
             font-size: 2rem;
         }
@@ -1311,10 +1317,13 @@
                     this.angle = -Math.PI/6;
                     this.flap += this.flapSpeed * 0.1;
                     
-                    let style = window.getComputedStyle(this.targetElement.closest('.message-card'));
-                    if (parseFloat(style.opacity) < 0.1) {
-                        this.reached = false;
-                        this.targetElement = { getBoundingClientRect: () => ({ right: this.x + 500, top: -100 }) };
+                    let card = this.targetElement.closest ? this.targetElement.closest('.message-card') : null;
+                    if (card) {
+                        let style = window.getComputedStyle(card);
+                        if (parseFloat(style.opacity) < 0.1) {
+                            this.reached = false;
+                            this.targetElement = { getBoundingClientRect: () => ({ left: this.x + 500, top: -100, width: 0 }) };
+                        }
                     }
                 }
             }
@@ -1427,7 +1436,7 @@
                                             let btnRect = startBtn.getBoundingClientRect();
                                             writerButterflies.push(new WriterButterfly(btnRect.left + btnRect.width/2, btnRect.top + btnRect.height/2, startBtn, () => {
                                                 // Añadir animación y mariposas al botón de sorpresa
-                                                startBtn.style.animation = 'attentionSeeker 2s infinite ease-in-out';
+                                                startBtn.style.animation = 'attentionPulse 2s infinite ease-in-out';
                                                 for(let j=0; j<6; j++) {
                                                     buttonButterflies.push(new ButtonButterfly(startBtn, j * (Math.PI * 2 / 6)));
                                                 }
