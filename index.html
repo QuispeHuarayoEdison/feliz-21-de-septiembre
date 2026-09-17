@@ -1070,23 +1070,30 @@
                 if (this.growing && this.scale < 1) {
                     this.scale += 0.003; // Takes ~5.5s at 60fps
                 }
+                if (this.exploding && this.opacity > 0) {
+                    this.opacity -= 0.015; // Suave desvanecimiento (aprox 1 segundo)
+                    
+                    // Spawn continuous magic dust while fading
+                    let headY = this.y - (this.stemHeight * this.scale);
+                    for (let i = 0; i < 8; i++) {
+                        let particle = new FairyDust(this.x + (Math.random() - 0.5) * 120, headY + (Math.random() - 0.5) * 120, '#FFD700');
+                        particle.size = Math.random() * 4 + 2;
+                        particle.vx = (Math.random() - 0.5) * 10;
+                        particle.vy = (Math.random() - 0.5) * 10;
+                        burstParticles.push(particle);
+                    }
+                }
             }
             explode() {
-                if (this.opacity <= 0) return;
-                this.opacity = 0;
+                if (this.exploding) return;
+                this.exploding = true;
+                
                 let headY = this.y - (this.stemHeight * this.scale);
-                // Spawns petals and dust from the sunflower's head and stem
-                for (let i = 0; i < 150; i++) {
-                    let particle = new FairyDust(this.x + (Math.random() - 0.5) * 100, headY + (Math.random() - 0.5) * 100, '#FFD700');
-                    particle.size = Math.random() * 4 + 2;
-                    particle.vx = (Math.random() - 0.5) * 15;
-                    particle.vy = (Math.random() - 0.5) * 15;
-                    burstParticles.push(particle);
-                }
+                // Initial burst of petals only
                 for (let i = 0; i < 30; i++) {
                     let p = new Particle(this.x, headY, true);
-                    p.vx = (Math.random() - 0.5) * 12;
-                    p.vy = (Math.random() - 0.5) * 12;
+                    p.vx = (Math.random() - 0.5) * 15;
+                    p.vy = (Math.random() - 0.5) * 15;
                     p.size = Math.random() * 8 + 4;
                     burstParticles.push(p);
                 }
