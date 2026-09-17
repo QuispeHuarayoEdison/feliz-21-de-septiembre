@@ -387,7 +387,7 @@
         
         <div class="message-card">
             <h1>Un Día Mágico</h1>
-            <p>Las flores amarillas representan la luz, la esperanza y la alegría de vivir. Que su brillo te acompañe y te recuerde lo especial y valioso(a) que eres en este mundo.</p>
+            <p>Las flores amarillas representan la luz, la esperanza y la alegría de vivir. Que su brillo te acompañe y te recuerde lo especial y valiosa que eres en este mundo.</p>
         </div>
         
         <div class="message-card">
@@ -556,7 +556,7 @@
                     // Trigger a little dust around button
                     let rect = ramoBtn.getBoundingClientRect();
                     for(let i=0; i<15; i++) burstParticles.push(new FairyDust(rect.left + rect.width/2, rect.top + rect.height/2, '#FFD700'));
-                }, 1000);
+                }, 6000);
             }
         }
 
@@ -639,6 +639,9 @@
 
         // Ramo (Bouquet) Logic
         ramoBtn.addEventListener('click', () => {
+            // Change button text so user knows they can spam it!
+            ramoBtn.innerText = 'Más mariposas y pétalos 🦋';
+            
             // Bring canvas to top for the huge petal explosion
             canvas.style.zIndex = '210';
             
