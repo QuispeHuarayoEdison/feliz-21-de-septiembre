@@ -1315,7 +1315,11 @@
             }
             update() {
                 this.flap += this.flapSpeed;
-                if (parseFloat(this.btn.style.opacity) > 0) {
+                let btnOpacity = parseFloat(window.getComputedStyle(this.btn).opacity);
+                let container = this.btn.closest('#splash') || this.btn;
+                let containerOpacity = parseFloat(window.getComputedStyle(container).opacity);
+
+                if (btnOpacity > 0 && containerOpacity > 0) {
                     this.orbitAngle += 0.035;
                     let rect = this.btn.getBoundingClientRect();
                     let tx = rect.left + rect.width/2 + Math.cos(this.orbitAngle) * this.orbitRadius;
@@ -1401,6 +1405,11 @@
                                         setTimeout(() => {
                                             let btnRect = startBtn.getBoundingClientRect();
                                             writerButterflies.push(new WriterButterfly(btnRect.left + btnRect.width/2, btnRect.top + btnRect.height/2, startBtn, () => {
+                                                // Añadir animación y mariposas al botón de sorpresa
+                                                startBtn.style.animation = 'attentionSeeker 2s infinite ease-in-out';
+                                                for(let j=0; j<6; j++) {
+                                                    buttonButterflies.push(new ButtonButterfly(startBtn, j * (Math.PI * 2 / 6)));
+                                                }
                                                 // Reset canvas z-index after everything
                                                 setTimeout(() => {
                                                     canvas.style.zIndex = '1';
