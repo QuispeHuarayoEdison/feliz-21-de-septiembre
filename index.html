@@ -667,6 +667,25 @@
 
         // Ramo (Bouquet) Logic
         ramoBtn.addEventListener('click', () => {
+            // Scatter the orbiting swarm
+            buttonButterflies.forEach(b => {
+                if (b.btn === ramoBtn) b.scattered = true;
+            });
+            
+            // Fly away perched butterfly if exists
+            if (ramoBtnPerchedButterfly) {
+                ramoBtnPerchedButterfly.reached = false;
+                ramoBtnPerchedButterfly.targetElement = { getBoundingClientRect: () => ({ left: ramoBtnPerchedButterfly.x + 500, top: -100, width: 0 }) };
+                ramoBtnPerchedButterfly = null;
+            }
+
+            // Spawn a new perched butterfly after a delay to land on the button
+            setTimeout(() => {
+                let b = new PerchedButterfly(ramoBtn);
+                ramoBtnPerchedButterfly = b;
+                perchedButterflies.push(b);
+            }, 2500);
+
             // Change button text so user knows they can spam it!
             ramoBtn.innerText = 'Esparcir magia 🦋✨';
             
@@ -1312,6 +1331,7 @@
                 this.size = 7 + Math.random() * 4;
                 this.orbitRadius = 70 + Math.random() * 30;
                 this.flapSpeed = 0.4 + Math.random() * 0.2;
+                this.scattered = false;
             }
             update() {
                 this.flap += this.flapSpeed;
@@ -1319,7 +1339,7 @@
                 let container = this.btn.closest('#splash') || this.btn;
                 let containerOpacity = parseFloat(window.getComputedStyle(container).opacity);
 
-                if (btnOpacity > 0 && containerOpacity > 0) {
+                if (!this.scattered && btnOpacity > 0 && containerOpacity > 0) {
                     this.orbitAngle += 0.035;
                     let rect = this.btn.getBoundingClientRect();
                     let tx = rect.left + rect.width/2 + Math.cos(this.orbitAngle) * this.orbitRadius;
@@ -1378,6 +1398,7 @@
         let musicNotes = [];
         let writtenLettersCount = 0;
         let magicDustTransition = null;
+        let ramoBtnPerchedButterfly = null;
 
         function startWritingTitle() {
             appState = 'WRITE_TITLE';
