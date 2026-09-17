@@ -586,6 +586,9 @@
                     for(let i=0; i<6; i++) {
                         buttonButterflies.push(new ButtonButterfly(ramoBtn, i * (Math.PI * 2 / 6)));
                     }
+                    
+                    // Set canvas z-index higher than ramoBtn so butterflies sit on top
+                    canvas.style.zIndex = '310';
                 }, 6000);
             }
         }
@@ -673,6 +676,8 @@
 
         // Ramo (Bouquet) Logic
         ramoBtn.addEventListener('click', () => {
+            appState = 'BOUQUET'; // Prevent swipe events from hiding the button
+            
             // Scatter the orbiting swarm
             buttonButterflies.forEach(b => {
                 if (b.btn === ramoBtn) b.scattered = true;
@@ -696,8 +701,8 @@
             // Change button text so user knows they can spam it!
             ramoBtn.innerText = 'Esparcir magia 🦋✨';
             
-            // Bring canvas to top for the huge petal explosion
-            canvas.style.zIndex = '210';
+            // Bring canvas to top for the huge petal explosion and butterflies
+            canvas.style.zIndex = '310';
             
             ramoScreen.style.visibility = 'visible';
             ramoScreen.style.opacity = '1';
