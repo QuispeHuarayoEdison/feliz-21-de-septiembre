@@ -1435,6 +1435,10 @@
                     magicDustTransition.update();
                     // dust draws itself in burstParticles array
                 }
+                if (magicFlower) {
+                    magicFlower.update();
+                    magicFlower.draw();
+                }
             } else {
                 // SPLASH or MAIN
                 for (let i = 0; i < particles.length; i++) {
