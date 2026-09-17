@@ -339,9 +339,16 @@
             to { height: 20px; }
         }
 
+        #ramoText {
+            font-size: 2rem;
+        }
+
         @media (max-width: 480px) {
             .splash-title {
                 font-size: 1.35rem;
+            }
+            #ramoText {
+                font-size: 1.25rem;
             }
             .message-card h1 {
                 font-size: 1.8rem;
@@ -402,7 +409,7 @@
 
     <!-- Bouquet Screen -->
     <div id="ramoScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 200; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 2s ease, visibility 2s ease; flex-direction: column;">
-        <h2 style="color: #FFD700; margin-bottom: 25px; font-family: 'Cinzel', serif; font-size: 2rem; text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); opacity: 0; transition: opacity 2s ease 1.5s; text-align: center;" id="ramoText">¡Feliz 21 de Septiembre!</h2>
+        <h2 style="color: #FFD700; margin-bottom: 25px; font-family: 'Cinzel', serif; text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); opacity: 0; transition: opacity 2s ease 1.5s; text-align: center;" id="ramoText">¡Feliz 21 de Septiembre!</h2>
         <img id="ramoImg" src="ramo.jpg" alt="Ramo de flores amarillas" style="max-width: 90%; max-height: 70vh; border-radius: 20px; box-shadow: 0 0 50px rgba(255, 215, 0, 0.7); transform: scale(0.5); transition: transform 2.5s cubic-bezier(0.2, 0.8, 0.2, 1);">
     </div>
 
@@ -640,7 +647,7 @@
         // Ramo (Bouquet) Logic
         ramoBtn.addEventListener('click', () => {
             // Change button text so user knows they can spam it!
-            ramoBtn.innerText = 'Más mariposas y pétalos 🦋';
+            ramoBtn.innerText = 'Esparcir magia 🦋✨';
             
             // Bring canvas to top for the huge petal explosion
             canvas.style.zIndex = '210';
